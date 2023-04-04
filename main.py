@@ -32,17 +32,22 @@ class Simulation:
             initial_y = np.random.randint(low=0, high=self.shape[1])
 
         # set initial spreader
-        self.lattice[initial_x, initial_y]['spread_rumour'] = self.l
+        self.lattice[initial_x, initial_y]['cooldown'] = self.l
 
         for i in range (iterations):
             self.simulate_step()
+            plt.imshow(self.lattice['spread_rumour'], cmap='viridis')
+            plt.title(f"iteration number {i}")
+            plt.pause(0.01)
+        
+        plt.show()
             
     def create_cell_lattice(self):
         """
         create a new lattice graph of people with random assignments according
         to the given distribution parameters
         """
-        features = np.dtype([('exists', 'bool'), ('sus_level', 'i4'), ('heard_rumour','i4'),('cooldown','i4')('spread_rumour', 'i4')])
+        features = np.dtype([('exists', 'bool'), ('sus_level', 'i4'), ('heard_rumour','i4'),('cooldown','i4'),('spread_rumour', 'i4')])
         self.lattice = np.ndarray(shape=self.shape, dtype=features)
         
         # generate
@@ -74,14 +79,14 @@ class Simulation:
         # person heard it once
             if np.random.rand(1) < self.lattice[i, j]['sus_level']:
                 # decide whether or not to spread the rumour
-                self.lattice[i, j]['spread_rumour'] = self.l
+                self.lattice[i, j]['cooldown'] = self.l
                 return # decided to spread, will do so next iteration
         
         elif self.lattice[i, j]['heard_rumour'] >= 2:
             # person heard it twice
             if np.random.rand(1) < self.lattice[i, j]['sus_level'] + 1/3:
                 # decide whether or not to spread the rumour
-                self.lattice[i, j]['spread_rumour'] = self.l
+                self.lattice[i, j]['cooldown'] = self.l
                 return # decided to spread, will do so next iteration
 
         else:
@@ -109,29 +114,12 @@ class Simulation:
 
                 # person has spread the rumour in the last l iterations               
                 else:
-                    self.lattice[i, j]['spread_rumour'] -= 1
+                    self.lattice[i, j]['cooldown'] -= 1
                 
                 # once a decision has been made for the next iteration,
                 # remove influence of the previous one
                 self.lattice[i, j]['heard_rumour'] = 0
                     
-                    
-
-
-    def plot_lattice(self):
-        """
-        plot the lattice as a matrix image with regard to the specified cell field
-        """
-        values = self.lattice['heard_rumour']
-
-
-        print(values)
-        plt.imshow(values, cmap='viridis')
-        plt.colorbar()
-        plt.show()
-
-                
-                
 
 
 
@@ -144,13 +132,13 @@ if __name__ == '__main__':
     l = 3
 
     # num of iterations parameter
-    iterations = 10
+    iterations = 100
 
     # susceptibility level probability parameters
-    s1 = 0.3
-    s2 = 0.3
-    s3 = 0.2
-    s4 = 0.2
+    s1 = 0.9
+    s2 = 0.04
+    s3 = 0.05
+    s4 = 0.01
     sus_prob = [s1, s2, s3, s4]
 
     sim = Simulation(p, sus_prob, l, iterations)
