@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import gui
 from scipy.stats import rv_discrete
 
 
@@ -36,11 +37,18 @@ class Simulation:
 
         for i in range (iterations):
             self.simulate_step()
-            plt.imshow(self.lattice['spread_rumour'], cmap='viridis')
+            # Create a figure and plot the image
+            fig, ax = plt.subplots()
             plt.title(f"iteration number {i}")
+
+            ax.imshow(self.lattice['spread_rumour'])
+
+            # Export the image to a data buffer
+            buffer = fig.canvas.tostring_rgb()
+            gui(buffer)
             plt.pause(0.01)
+            # maybe add time(0.01)
         
-        plt.show()
             
     def create_cell_lattice(self):
         """
@@ -124,7 +132,6 @@ class Simulation:
 
 
 if __name__ == '__main__':
-
     # pop density parameter
     p = 0.8
 
@@ -142,5 +149,4 @@ if __name__ == '__main__':
     sus_prob = [s1, s2, s3, s4]
 
     sim = Simulation(p, sus_prob, l, iterations)
-    sim.plot_lattice()
         
