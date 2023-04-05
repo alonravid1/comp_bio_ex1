@@ -1,12 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import gui
 from scipy.stats import rv_discrete
 
 
 class Simulation:
     
-    def __init__(self, p, sus_prob, l, iterations, shape=(100,100)):
+    def __init__(self, p, l, iterations, s1, s2, s3, s4, shape=(100,100)):
         """
         set parameters to board, create a lattice graph of
         people represented by a tuple of:
@@ -17,11 +16,11 @@ class Simulation:
             exit(-1)
 
         self.p_dist = rv_discrete(values=([False, True], [(1-p), p]))
-        self.sus_dist = rv_discrete(values=([1, 2/3, 1/3, 0 ], sus_prob))
+        self.sus_dist = rv_discrete(values=([1, 2/3, 1/3, 0 ], [s1, s2, s3, s4]))
 
         self.l = l
         self.shape = shape
-
+        self.iterations = iterations
         self.create_cell_lattice()
         
         initial_x = np.random.randint(low=0, high=self.shape[0])
@@ -34,20 +33,16 @@ class Simulation:
 
         # set initial spreader
         self.lattice[initial_x, initial_y]['cooldown'] = self.l
+        
+    
+    def run(self):
+        frames = []
 
-        for i in range (iterations):
+        for i in range (self.iterations):
             self.simulate_step()
-            # Create a figure and plot the image
-            fig, ax = plt.subplots()
-            plt.title(f"iteration number {i}")
-
-            ax.imshow(self.lattice['spread_rumour'])
-
-            # Export the image to a data buffer
-            buffer = fig.canvas.tostring_rgb()
-            gui(buffer)
-            plt.pause(0.01)
-            # maybe add time(0.01)
+            # save rumour spreading matrix 
+            frames.append(self.lattice['spread_rumour'])
+        return frames
         
             
     def create_cell_lattice(self):
@@ -146,7 +141,8 @@ if __name__ == '__main__':
     s2 = 0.04
     s3 = 0.05
     s4 = 0.01
-    sus_prob = [s1, s2, s3, s4]
+  
 
-    sim = Simulation(p, sus_prob, l, iterations)
+    sim = Simulation(p, l, iterations, s1, s2, s3, s4)
+    sim.run()
         
