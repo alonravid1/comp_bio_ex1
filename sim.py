@@ -36,12 +36,14 @@ class Simulation:
         
     
     def run(self):
-        frames = []
+        frames = self.lattice['spread_rumour']
 
-        for i in range (self.iterations):
+        for i in range (1, self.iterations):
             self.simulate_step()
             # save rumour spreading matrix 
-            frames.append(self.lattice['spread_rumour'])
+            frames = np.dstack((self.lattice['spread_rumour'], frames))
+            # plt.imshow(self.lattice['spread_rumour'])
+            # plt.pause(0.01)
         return frames
         
             
@@ -131,18 +133,23 @@ if __name__ == '__main__':
     p = 0.8
 
     # rumour spreading cooldown parameter
-    l = 3
+    l = 2
 
     # num of iterations parameter
     iterations = 100
 
     # susceptibility level probability parameters
-    s1 = 0.9
-    s2 = 0.04
-    s3 = 0.05
-    s4 = 0.01
-  
+    # s1 = 0.9
+    # s2 = 0.04
+    # s3 = 0.05
+    # s4 = 0.01
+    s1 = 1
+    s2 = 0
+    s3 = 0
+    s4 = 0
 
-    sim = Simulation(p, l, iterations, s1, s2, s3, s4)
-    sim.run()
+    # sim = Simulation(p, l, iterations, s1, s2, s3, s4)
+    sim = Simulation(0.7, 2, 100, 0.5, 0.2, 0.2, 0.1)
+    frames = sim.run()
+    
         
