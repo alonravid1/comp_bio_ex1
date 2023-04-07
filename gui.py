@@ -18,18 +18,18 @@ class Gui:
         # set main window's layout
         self.main_layout = [
             [sg.Text('enter parameters:', font=self.AppFont)],
-            [sg.Text('p:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont)],
-            [sg.Text('l:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont)],
+            [sg.Text('p:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont, default_text='0.7')],
+            [sg.Text('l:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont, default_text='2')],
                     
             [sg.Text('number of iterations:', font=self.AppFont),
-                sg.Input(key='iter', size=(15,1), font=self.AppFont)],
+                sg.Input(key='iter', size=(15,1), font=self.AppFont, default_text='100')],
             
             [sg.Text('susceptibility distribution:', font=self.AppFont)],
             
-            [sg.Text('s1',font=self.AppFont), sg.Input(key='s1', size=(15,1), font=self.AppFont),
-             sg.Text('s2',font=self.AppFont), sg.Input(key='s2', size=(15,1), font=self.AppFont),
-             sg.Text('s3',font=self.AppFont), sg.Input(key='s3', size=(15,1), font=self.AppFont),
-             sg.Text('s4',font=self.AppFont), sg.Input(key='s4', size=(15,1), font=self.AppFont)
+            [sg.Text('s1',font=self.AppFont), sg.Input(key='s1', size=(15,1), font=self.AppFont, default_text='0.7'),
+             sg.Text('s2',font=self.AppFont), sg.Input(key='s2', size=(15,1), font=self.AppFont, default_text='0.15'),
+             sg.Text('s3',font=self.AppFont), sg.Input(key='s3', size=(15,1), font=self.AppFont, default_text='0.1'),
+             sg.Text('s4',font=self.AppFont), sg.Input(key='s4', size=(15,1), font=self.AppFont, default_text='0.05')
             ],
             
             [sg.Button('Start Simulation', font=self.AppFont)],
