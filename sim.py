@@ -36,12 +36,19 @@ class Simulation:
         
     
     def run(self):
+        """
+        runs the simulation using the class's set attributes.
+        returns a numpy array where each index holds the lattice's
+        got_rumour value in the respective iteration.
+        """
         frames = np.ones((self.iterations, self.shape[0], self.shape[1]))
 
         for i in range (self.iterations):
             self.simulate_step()
             # save rumour spreading matrix 
             frames[i]= self.lattice['got_rumour']
+            
+            # this is used to check the sim without the gui:
             # plt.title(f"iteration number {i}")
             # plt.imshow(self.lattice['got_rumour'])
             # plt.pause(0.02)
@@ -65,21 +72,38 @@ class Simulation:
         
 
     def spread_rumour(self, i, j):
-        if i > 0 and self.lattice[i-1, j]['exists']:
-            self.lattice[i-1, j]['heard_rumour'] += 1
+        """
+        this function is called when a cell decides to spread a rumour,
+        it adds 1 to each neighbour's heard_rumour attribute
+        """
+        
+        # if is split to prevent errors when at lattice's edge
+        if i > 0:
+            if self.lattice[i-1, j]['exists']:
+                self.lattice[i-1, j]['heard_rumour'] += 1
 
-        if i < self.shape[0]-1 and self.lattice[i+1, j]['exists']:
-            self.lattice[i+1, j]['heard_rumour'] += 1
+        if i < self.shape[0]-1:
+            if self.lattice[i+1, j]['exists']:
+                self.lattice[i+1, j]['heard_rumour'] += 1
 
-        if j > 0 and self.lattice[i, j-1]['exists']:
-            self.lattice[i, j-1]['heard_rumour'] += 1
+        if j > 0:
+            if self.lattice[i, j-1]['exists']:
+                self.lattice[i, j-1]['heard_rumour'] += 1
 
-        if j < self.shape[1]-1 and self.lattice[i, j+1]['exists']:
-            self.lattice[i, j+1]['heard_rumour'] += 1
+        if j < self.shape[1]-1:
+            if self.lattice[i, j+1]['exists']:
+                self.lattice[i, j+1]['heard_rumour'] += 1
 
         self.lattice[i, j]['got_rumour'] += 1
         
     def make_decision(self, i, j):
+        """
+        decide whether or not to pass on the rumour
+        based on a number sampled uniformly at random
+        between 0 and 1, and according to susceptibility and
+        whether or not the cell heard the rumour at least twice in
+        the past iteration
+        """
         # person has yet decided to spread the rumour
         if self.lattice[i, j]['heard_rumour'] == 1:
             # person heard it once
@@ -100,6 +124,9 @@ class Simulation:
             return
             
     def simulate_step(self):
+        """
+        run one iteration of the simulation
+        """
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 if not self.lattice[i, j]['exists']:

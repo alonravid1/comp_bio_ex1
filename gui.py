@@ -1,22 +1,21 @@
 import PySimpleGUI as sg
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
 import sim
 import time
 import os
-# Note the matplot tk canvas import
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 class Gui:
-    def __init__(self) -> None:
-
+    def __init__(self):
+        # setting general GUI properties
         sg.theme('DarkAmber')
 
         self.AppFont = 'Any 12'
         self.shape = (600, 600)
         self.matrix_shape = (100,100)
         
+        # set main window's layout
         self.main_layout = [
             [sg.Text('enter parameters:', font=self.AppFont)],
             [sg.Text('p:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont)],
@@ -40,10 +39,12 @@ class Gui:
         self.start()
         
     def create_sim_layout(self):
-        # pysimplegui cannot reuse a layout, generating a new
-        # layout with new element objects is the solution, rather
-        # than trying to create a template and starting to work on
-        # deep copying the very flexible nested arrays of elements.
+        """
+        pysimplegui cannot reuse a layout, generating a new
+        layout with new element objects is the solution, rather
+        than trying to create a template and starting to work on
+        deep copying the very flexible nested arrays of elements.
+        """
         fresh_layout = [[sg.Text(key="show_iter", font=self.AppFont)],
                     [sg.Image(key='frame'),
                      [sg.Button('Close', font=self.AppFont, disabled=True)]]]
@@ -52,6 +53,10 @@ class Gui:
         
            
     def draw_frame(self, window, frame, iteration,):
+        """
+        function resizes the given frame to be bigger, saves it
+        as an image and then shows it on the GUI for 0.05 of a second
+        """
         
         resized_frame = np.ndarray(shape=self.shape)
         rectangle_side = int(self.shape[0]/self.matrix_shape[0])
@@ -67,6 +72,12 @@ class Gui:
         window.refresh()
 
     def start_simulation(self, sim_values):
+        """
+        creates the new simulation window, runs the simulation
+        to get all itertion frames, and then show each one
+        using draw_frame(), afterwhich it gives the user the option to
+        close the window whenever they'd like
+        """
         window = sg.Window('Rumour Spreading Simulation',
                                     self.create_sim_layout(),
                                     finalize=True,
@@ -95,6 +106,11 @@ class Gui:
                 
                 
     def start(self):
+        """
+        starts the main window in which the parameters are set,
+        allows multiple simulations to run and to change the parameters
+        for each one without having to close the program
+        """
         self.window = sg.Window('Rumour Spreading Simulation',
                                     self.main_layout,
                                     finalize=True,
@@ -114,13 +130,23 @@ class Gui:
                                 float(values['s1']), float(values['s2']), float(values['s3']), float(values['s4'])]
                     
                     # check all values are positive
-                    assert all(value >= 0 for value in sim_values)
-                    assert (sim_values[1] >= 1 and sim_values[2] >= 1)
-                    assert sum(sim_values[3:]) == 1
-                    assert sim_values[0] <= 1
+                    if any(value < 0 for value in sim_values):
+                        sg.popup('Values cannot be negative')
+                        continue
+                    if (sim_values[1] < 1 or sim_values[2] <1):
+                        sg.popup('both l and number of iterations must be at least 1')
+                        continue
+                    if sum(sim_values[3:]) != 1 :
+                        sg.popup('distribution probability values must add up to 1')
+                        continue
+                    if sim_values[0] > 1 :
+                        sg.popup('P value must be between 0 and 1')
+                        continue
+                    
                 except:
                     sg.popup('Error parsing input')
                     continue
+                
                 # sim_values = [0.7, 2, 15, 0.7, 0.15, 0.1, 0.05]
                 self.start_simulation(sim_values)
                 
