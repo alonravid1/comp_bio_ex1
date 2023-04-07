@@ -36,14 +36,15 @@ class Simulation:
         
     
     def run(self):
-        frames = self.lattice['spread_rumour']
+        frames = np.ones((self.iterations, self.shape[0], self.shape[1]))
 
-        for i in range (1, self.iterations):
+        for i in range (self.iterations):
             self.simulate_step()
             # save rumour spreading matrix 
-            frames = np.dstack((self.lattice['spread_rumour'], frames))
-            plt.imshow(self.lattice['spread_rumour'])
-            plt.pause(0.01)
+            frames[i]= self.lattice['got_rumour']
+            plt.title(f"iteration number {i}")
+            plt.imshow(self.lattice['got_rumour'])
+            plt.pause(0.02)
         return frames
         
             
@@ -52,7 +53,7 @@ class Simulation:
         create a new lattice graph of people with random assignments according
         to the given distribution parameters
         """
-        features = np.dtype([('exists', 'bool'), ('sus_level', 'i4'), ('heard_rumour','i4'),('cooldown','i4'),('spread_rumour', 'i4')])
+        features = np.dtype([('exists', 'bool'), ('sus_level', 'i4'), ('heard_rumour','i4'),('cooldown','i4'),('got_rumour', 'i4')])
         self.lattice = np.ndarray(shape=self.shape, dtype=features)
         
         # generate
@@ -60,7 +61,7 @@ class Simulation:
         self.lattice['sus_level'] = self.sus_dist.rvs(size=self.shape)
         self.lattice['heard_rumour'] = np.zeros(self.shape)
         self.lattice['cooldown'] = np.zeros(self.shape)
-        self.lattice['spread_rumour'] = np.zeros(self.shape)
+        self.lattice['got_rumour'] = np.zeros(self.shape)
         
 
     def spread_rumour(self, i, j):
@@ -76,12 +77,12 @@ class Simulation:
         if j < self.shape[1]-1 and self.lattice[i, j+1]['exists']:
             self.lattice[i, j+1]['heard_rumour'] += 1
 
-        self.lattice[i, j]['spread_rumour'] += 1
+        self.lattice[i, j]['got_rumour'] += 1
         
     def make_decision(self, i, j):
         # person has yet decided to spread the rumour
         if self.lattice[i, j]['heard_rumour'] == 1:
-        # person heard it once
+            # person heard it once
             if np.random.rand(1) < self.lattice[i, j]['sus_level']:
                 # decide whether or not to spread the rumour
                 self.lattice[i, j]['cooldown'] = self.l
@@ -143,13 +144,13 @@ if __name__ == '__main__':
     # s2 = 0.04
     # s3 = 0.05
     # s4 = 0.01
-    s1 = 1
-    s2 = 0
+    s1 = 0.9
+    s2 = 0.1
     s3 = 0
     s4 = 0
 
     # sim = Simulation(p, l, iterations, s1, s2, s3, s4)
-    sim = Simulation(0.7, 2, 100, 0.5, 0.2, 0.2, 0.1)
+    sim = Simulation(0.8, 2, 100, 0.3, 0.2, 0.3, 0.2)
     frames = sim.run()
     
         
