@@ -42,9 +42,9 @@ class Simulation:
             self.simulate_step()
             # save rumour spreading matrix 
             frames[i]= self.lattice['got_rumour']
-            plt.title(f"iteration number {i}")
-            plt.imshow(self.lattice['got_rumour'])
-            plt.pause(0.02)
+            # plt.title(f"iteration number {i}")
+            # plt.imshow(self.lattice['got_rumour'])
+            # plt.pause(0.02)
         return frames
         
             
@@ -140,17 +140,14 @@ if __name__ == '__main__':
     iterations = 100
 
     # susceptibility level probability parameters
-    # s1 = 0.9
-    # s2 = 0.04
-    # s3 = 0.05
-    # s4 = 0.01
     s1 = 0.9
     s2 = 0.1
     s3 = 0
     s4 = 0
 
     # sim = Simulation(p, l, iterations, s1, s2, s3, s4)
-    sim = Simulation(0.8, 2, 100, 0.3, 0.2, 0.3, 0.2)
+
+    sim = Simulation(0.7, 2, 15, 0.7, 0.15, 0.1, 0.05)
     frames = sim.run()
     
         
