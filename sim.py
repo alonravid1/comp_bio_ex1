@@ -42,8 +42,8 @@ class Simulation:
             self.simulate_step()
             # save rumour spreading matrix 
             frames = np.dstack((self.lattice['spread_rumour'], frames))
-            # plt.imshow(self.lattice['spread_rumour'])
-            # plt.pause(0.01)
+            plt.imshow(self.lattice['spread_rumour'])
+            plt.pause(0.01)
         return frames
         
             

@@ -72,10 +72,10 @@ class Gui:
                 resized_frame[i:i+rectangle_side, j:j+rectangle_side] = frame[int(i/rectangle_side), int(j/rectangle_side)]
                 
 
-        plt.imsave("frame.png", resized_frame, cmap='inferno')
-        self.window['frame'].update("frame.png")
-        time.sleep(0.2)
-        self.window.refresh()
+        # plt.imsave("frame.png", resized_frame, cmap='inferno')
+        # self.window['frame'].update("frame.png")
+        # time.sleep(0.2)
+        # self.window.refresh()
         # try:
         #     os.remove("frame.png")
         # except:
