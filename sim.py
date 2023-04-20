@@ -23,16 +23,16 @@ class Simulation:
         self.iterations = iterations
         self.create_cell_lattice()
         
-        # initial_x = np.random.randint(low=0, high=self.shape[0])
-        # initial_y = np.random.randint(low=0, high=self.shape[1])
+        initial_x = np.random.randint(low=0, high=self.shape[0])
+        initial_y = np.random.randint(low=0, high=self.shape[1])
 
-        # # get random indices within the matrix, where a preson exists
-        # while not self.lattice[initial_x, initial_y]['exists']:
-        #     initial_x = np.random.randint(low=0, high=self.shape[0])
-        #     initial_y = np.random.randint(low=0, high=self.shape[1])
+        # get random indices within the matrix, where a preson exists
+        while not self.lattice[initial_x, initial_y]['exists']:
+            initial_x = np.random.randint(low=0, high=self.shape[0])
+            initial_y = np.random.randint(low=0, high=self.shape[1])
 
-        initial_x = self.shape[0]//2
-        initial_y = self.shape[1]//2
+        # initial_x = self.shape[0]//2
+        # initial_y = self.shape[1]//2
 
         # set initial spreader
         self.lattice[initial_x, initial_y]['cooldown'] = self.l
