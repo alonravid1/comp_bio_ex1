@@ -9,7 +9,7 @@ In this report I will analyse the spread of rumours in a 100 by 100 cell matrix.
 ## Parameters <a name="parm"></a>
 The simulation is defined by the following parameters:
 * P - portion of the cells that are inhibited.
-* L - spread limiter, after spreading the rumour a cell cannot spread it agian for L iterations.
+* L - spread limiter, after spreading the rumour a cell cannot spread it again for L iterations.
 * Suciptibilty level ratios - defined in the parameters s1, s2, s3 and s4, the parameters represent a distribution function whose values are 1, 2/3, 1/3, 0 respectively. The values represent the probabilty that a cell will believe a rumour and then spread it upon hearing it.
 * Number of iterations - how many iterations the simulation will run.
 

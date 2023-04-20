@@ -12,13 +12,13 @@ class Gui:
         sg.theme('DarkAmber')
 
         self.AppFont = 'Any 12'
-        self.shape = (500, 300)
+        self.shape = (500, 500)
         self.matrix_shape = (100,100)
         
         # set main window's layout
         self.main_layout = [
             [sg.Text('enter parameters:', font=self.AppFont)],
-            [sg.Text('p:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont, default_text='0.7')],
+            [sg.Text('p:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont, default_text='0.85')],
             [sg.Text('l:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont, default_text='2')],
                     
             [sg.Text('number of iterations:', font=self.AppFont),
@@ -32,10 +32,23 @@ class Gui:
              sg.Text('s4',font=self.AppFont), sg.Input(key='s4', size=(15,1), font=self.AppFont, default_text='0.05')
             ],
             
+            [sg.Button('Information', font=self.AppFont)],
             [sg.Button('Start Simulation', font=self.AppFont)],
             [sg.Button('Exit', font=self.AppFont)]
             ]
         
+        self.infotext = """welcome to the rumour spreading simulator,
+        please enter the following parameters as follows:
+        * P - portion of the cells that are inhibited. Enter a number between 0 and 1.
+        * L - spread limiter, after spreading the rumour a cell cannot spread it again for L iterations. Enter a positive integer.
+        * Number of iterations - how many iterations the simulation will run. Enter a positive integer.
+        * Suciptibilty level ratios - defined in the parameters s1, s2, s3 and s4, the parameters represent a distribution function whose values are 1, 2/3, 1/3, 0 respectively. The values represent the probabilty that a cell will believe a rumour and then spread it upon hearing it.
+        enter 4 numbers between 0 and 1, summing up to 1.
+        
+        Upon clicking start simulation the program will take a few seconds to first
+        run the simulation and then display it. If you close it before it finishes
+        it will cause the gui to crash and you will need to close it.
+        """
         # self.start()
         
     def create_sim_layout(self):
@@ -47,7 +60,7 @@ class Gui:
         """
         fresh_layout = [[sg.Text(key="show_iter", font=self.AppFont)],
                     [sg.Image(key='frame'),
-                     [sg.Button('Close', font=self.AppFont, disabled=True)]]]
+                    [sg.Button('Close', font=self.AppFont, disabled=True)]]]
         
         return fresh_layout
         
@@ -59,18 +72,18 @@ class Gui:
         """
         
         resized_frame = np.ndarray(shape=self.shape)
-        # horizental_side = int(self.shape[0]/self.matrix_shape[0])
-        # rectangle_horiz = int(self.shape[0]/self.matrix_shape[0])
-        rectangle_side = int(self.shape[0]/self.matrix_shape[0])
-        for i in range(0, self.shape[0]-rectangle_side, rectangle_side ):
-            for j in range(0, self.shape[1]-rectangle_side, rectangle_side):
+        horizental_side = int(self.shape[0]/self.matrix_shape[0])
+        vercitcal_side = int(self.shape[1]/self.matrix_shape[1])
+        # rectangle_side = int(self.shape[0]/self.matrix_shape[0])
+        for i in range(0, self.shape[0]-horizental_side, horizental_side ):
+            for j in range(0, self.shape[1]-vercitcal_side, vercitcal_side):
                 # Draw the matrix on the graph
-                resized_frame[i:i+rectangle_side, j:j+rectangle_side] = frame[int(i/rectangle_side), int(j/rectangle_side)]
+                resized_frame[i:i+horizental_side, j:j+vercitcal_side] = frame[int(i/horizental_side), int(j/vercitcal_side)]
                 
         plt.imsave("frame.png", resized_frame, cmap='inferno')
         window['show_iter'].update(f"iteration number {iteration}")
         window['frame'].update("frame.png")
-        time.sleep(0.05)
+        time.sleep(0.05)        
         window.refresh()
 
     def start_simulation(self, sim_values):
@@ -85,10 +98,29 @@ class Gui:
                                     finalize=True,
                                     resizable=True,
                                     element_justification="left")
+        
+        
+        
+        # run the simulation, save the generated frames
         simulation = sim.Simulation(*sim_values)
         frames = simulation.run()
         
-        for i in range(frames.shape[0]):
+        # set window to middle of screen
+        screen_width, screen_height = window.get_screen_dimensions()
+        win_width, win_height = window.size
+        x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
+        window.move(x, y)
+        
+        # draw first frame and then move the
+        # window to the middle of the screen
+        self.draw_frame(window, frames[0], 0)
+        screen_width, screen_height = window.get_screen_dimensions()
+        win_width, win_height = window.size
+        x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
+        window.move(x, y)
+        
+        # draw the simulation frames
+        for i in range(1, frames.shape[0]):
             self.draw_frame(window, frames[i], i)
             
         # show close button for simulation    
@@ -124,7 +156,9 @@ class Gui:
            
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
-
+            
+            if event == 'Information':
+                sg.popup(self.infotext)
             if event == 'Start Simulation':
                 # process user entered parameters
                 try:
