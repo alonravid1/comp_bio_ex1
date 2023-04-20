@@ -102,7 +102,7 @@ If you close it before it finishes it will cause the gui to crash and you will n
                 pass
             exit()
             
-        time.sleep(0.05)        
+        time.sleep(0.04)
         window.refresh()
 
     def start_simulation(self, sim_values):
@@ -154,8 +154,8 @@ If you close it before it finishes it will cause the gui to crash and you will n
             pass
 
         window.close()
-            
-                 
+
+
     def start(self):
         """
         starts the main window in which the parameters are set,
