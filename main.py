@@ -12,7 +12,7 @@ class Gui:
         sg.theme('DarkAmber')
 
         self.AppFont = 'Any 12'
-        self.shape = (600, 600)
+        self.shape = (500, 300)
         self.matrix_shape = (100,100)
         
         # set main window's layout
@@ -36,7 +36,7 @@ class Gui:
             [sg.Button('Exit', font=self.AppFont)]
             ]
         
-        self.start()
+        # self.start()
         
     def create_sim_layout(self):
         """
@@ -59,6 +59,8 @@ class Gui:
         """
         
         resized_frame = np.ndarray(shape=self.shape)
+        # horizental_side = int(self.shape[0]/self.matrix_shape[0])
+        # rectangle_horiz = int(self.shape[0]/self.matrix_shape[0])
         rectangle_side = int(self.shape[0]/self.matrix_shape[0])
         for i in range(0, self.shape[0]-rectangle_side, rectangle_side ):
             for j in range(0, self.shape[1]-rectangle_side, rectangle_side):
@@ -159,6 +161,8 @@ class Gui:
         
         
         
-                
-gui = Gui()
-# gui.draw_figure(fig)
+      
+
+if __name__ == '__main__':
+    gui = Gui()
+    gui.start()
