@@ -49,7 +49,7 @@ class Simulation:
         for i in range (self.iterations):
             self.simulate_step()
             # save rumour spreading matrix 
-            frames[i]= self.lattice['got_rumour']
+            frames[i] = self.lattice['heard_rumour']
             
             # this is used to check the sim without the gui:
             # plt.title(f"iteration number {i}")
@@ -99,62 +99,53 @@ class Simulation:
 
         self.lattice[i, j]['got_rumour'] += 1
         
-    def make_decision(self, i, j):
-        """
-        decide whether or not to pass on the rumour
-        based on a number sampled uniformly at random
-        between 0 and 1, and according to susceptibility and
-        whether or not the cell heard the rumour at least twice in
-        the past iteration
-        """
-        # person has yet decided to spread the rumour
-        if self.lattice[i, j]['heard_rumour'] == 1:
-            # person heard it once
-            if np.random.rand(1) < self.lattice[i, j]['sus_level']:
-                # decide whether or not to spread the rumour
-                self.lattice[i, j]['cooldown'] = self.l
-                return # decided to spread, will do so next iteration
-        
-        elif self.lattice[i, j]['heard_rumour'] >= 2:
-            # person heard it twice
-            if np.random.rand(1) < self.lattice[i, j]['sus_level'] + 1/3:
-                # decide whether or not to spread the rumour
-                self.lattice[i, j]['cooldown'] = self.l
-                return # decided to spread, will do so next iteration
-
-        else:
-            # person has not heard the rumour at all
-            return
-            
     def simulate_step(self):
         """
         run one iteration of the simulation
         """
-        for i in range(self.shape[0]):
-            for j in range(self.shape[1]):
-                if not self.lattice[i, j]['exists']:
-                # no person in lattice cell
-                    continue
+        # remove influence of the previous iteration, done
+        # here to allow frame to aputre rumour spread
+        self.lattice['heard_rumour'] = np.zeros(self.shape)
+        
+        # spread rumour and reduce cooldown
+        # based on the previous iteration
+        it_spread = np.nditer(self.lattice, flags=['multi_index'], op_flags=['readwrite'])
+        for cell in it_spread:
+            if not cell['exists']:
+            # no person in lattice cell
+                continue
+            
+            # person has decided to spread the rumour last iteration
+            if cell['cooldown'] == self.l:
+                self.spread_rumour(*it_spread.multi_index)
                 
-                # person has decided to spread the rumour last iteration
-                if self.lattice[i, j]['cooldown'] == self.l:
-                    self.spread_rumour(i, j)
+                # current iteration counts towards rumour spreaded
+                cell['cooldown'] -= 1
+
+            # person has spread the rumour in the last l iterations               
+            elif cell['cooldown'] > 0:
+                cell['cooldown'] -= 1
+        
+        # decide to spread rumour based on the previous iteration
+        it_decide = np.nditer(self.lattice, flags=['multi_index'], op_flags=['readwrite'])
+        for cell in it_decide:
+            """
+            decide whether or not to pass on the rumour
+            based on a number sampled uniformly at random
+            between 0 and 1, and according to susceptibility and
+            whether or not the cell heard the rumour at least twice in
+            the past iteration
+            """
+            if (cell['heard_rumour'] == 1 and
+                                np.random.rand(1) < cell['sus_level']):
+                cell['cooldown'] = self.l
+            elif (cell['heard_rumour'] > 1 and
+                            np.random.rand(1) < cell['sus_level'] + 1/3):
+                cell['cooldown'] = self.l
+            else:
+                # cell has not heard rumour and will not spread it
+                pass
                     
-                    # current iteration counts towards rumour spreaded
-                    self.lattice[i, j]['cooldown'] -= 1
-
-                # person hasn't spread the rumour for at least
-                # l iterations
-                elif self.lattice[i, j]['cooldown'] == 0:
-                    self.make_decision(i, j)
-
-                # person has spread the rumour in the last l iterations               
-                else:
-                    self.lattice[i, j]['cooldown'] -= 1
-                
-                # once a decision has been made for the next iteration,
-                # remove influence of the previous one
-                self.lattice[i, j]['heard_rumour'] = 0
                     
 
 
