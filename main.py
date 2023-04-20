@@ -11,7 +11,7 @@ class Gui:
         # setting general GUI properties
         sg.theme('DarkAmber')
 
-        self.AppFont = 'Any 12'
+        self.AppFont = 'Any 14'
         self.shape = (500, 500)
         self.matrix_shape = (100,100)
         self.visuals = 'cooldown'
@@ -20,12 +20,12 @@ class Gui:
         self.main_layout = [
             [sg.Text('Enter parameters:', font=self.AppFont)],
             [sg.Text('P:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont, default_text='0.85')],
-            [sg.Text('L:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont, default_text='2')],
+            [sg.Text('L:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont, default_text='5')],
                     
-            [sg.Text('Number of iterations:', font=self.AppFont),
+            [sg.Text('Number of Iterations:', font=self.AppFont),
                 sg.Input(key='iter', size=(15,1), font=self.AppFont, default_text='100')],
             
-            [sg.Text('Susceptibility levels distribution:', font=self.AppFont)],
+            [sg.Text('Susceptibility Levels Distribution:', font=self.AppFont)],
             
             [sg.Text('S1',font=self.AppFont), sg.Input(key='s1', size=(15,1), font=self.AppFont, default_text='0.7'),
              sg.Text('S2',font=self.AppFont), sg.Input(key='s2', size=(15,1), font=self.AppFont, default_text='0.15'),
@@ -42,15 +42,18 @@ class Gui:
             [sg.Button('Exit', font=self.AppFont)]
             ]
         
-        self.infotext = """
-welcome to the rumour spreading simulator,please enter the following parameters as follows:
+        self.infotext = """Welcome to the rumour spreading simulator.
 
-* P - portion of the cells that are inhibited. Enter a number between 0 and 1.
-* L - spread limiter, after spreading the rumour a cell cannot spread it again for L iterations. Enter a positive integer.
-* Number of iterations - how many iterations the simulation will run. Enter a positive integer.
-* Suciptibilty level ratios - defined in the parameters s1, s2, s3 and s4, the parameters represent a distribution function whose values are 1, 2/3, 1/3, 0 respectively.
-The values represent the probabilty that a cell will believe a rumour and then spread it upon hearing it.
-enter 4 numbers between 0 and 1, summing up to 1.
+Please enter the following parameters as follows:
+* P - Portion of the cells that are inhibited. Enter a number between 0 and 1.
+* L - Spread limiter, after spreading the rumour a cell cannot spread it again for L iterations. Enter a positive integer.
+* Number of Iterations - How many iterations the simulation will run. Enter a positive integer.
+* Susceptibilty Level Ratios - Each cell has a susceptibilty level between 1 to 4, where S1 means it will believe and spread every rumour it hears, S2 means he will believe and spread it with probabilty of 2/3, S3 with probabilty of 1/3 and 4 with probabilty of 0. The parameters S1 to S4 determine the ratio of cells with the respective susceptibilty level.
+Enter 4 fractions summing up to a total of 1.
+
+Visualisation types:
+* Spread Cooldown - Color cells by how many iterations remain until it can spread the rumour again. A cell which spreads the rumour becomes bright and fades until it can spread it again.
+* Rumour Heard - Colors cells by how many times they have heard the rumour in the same iteration, i.e. how many neighbors have spread it.
 
 Upon clicking start simulation the program will take a few seconds to run the simulation before displaying it.
 If you close it before it finishes it will cause the gui to crash and you will need to close it.
@@ -115,8 +118,6 @@ If you close it before it finishes it will cause the gui to crash and you will n
                                     resizable=True,
                                     element_justification="left")
         
-        
-        
         # run the simulation, save the generated frames
         simulation = sim.Simulation(*sim_values)
         frames = simulation.run()
@@ -139,7 +140,7 @@ If you close it before it finishes it will cause the gui to crash and you will n
         for i in range(1, frames.shape[0]):
             self.draw_frame(window, frames[i], i)
             
-        # show close button for simulation    
+        # show close button for simulation
         window['Close'].update(disabled=False)
         
         event = 'initial value'
@@ -154,9 +155,7 @@ If you close it before it finishes it will cause the gui to crash and you will n
 
         window.close()
             
-
-                
-                
+                 
     def start(self):
         """
         starts the main window in which the parameters are set,
@@ -186,7 +185,7 @@ If you close it before it finishes it will cause the gui to crash and you will n
                 self.window['Spread Cooldown'].update(disabled=False)
 
             if event == 'Information':
-                sg.popup(self.infotext)
+                sg.popup(self.infotext, font=self.AppFont)
 
             if event == 'Start Simulation':
                 # process user entered parameters
