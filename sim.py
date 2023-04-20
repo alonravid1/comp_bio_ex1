@@ -44,12 +44,12 @@ class Simulation:
         returns a numpy array where each index holds the lattice's
         got_rumour value in the respective iteration.
         """
-        frames = np.ones((self.iterations, self.shape[0], self.shape[1]))
+        frames = np.ndarray(shape=(self.iterations,100,100), dtype=self.features)
 
         for i in range (self.iterations):
             self.simulate_step()
             # save rumour spreading matrix 
-            frames[i] = self.lattice['got_rumour']
+            frames[i] = self.lattice
             
             # this is used to check the sim without the gui:
             # plt.title(f"iteration number {i}")
@@ -63,8 +63,8 @@ class Simulation:
         create a new lattice graph of people with random assignments according
         to the given distribution parameters
         """
-        features = np.dtype([('exists', 'bool'), ('sus_level', 'i4'), ('heard_rumour','i4'),('cooldown','i4'),('got_rumour', 'i4')])
-        self.lattice = np.ndarray(shape=self.shape, dtype=features)
+        self.features = np.dtype([('exists', 'bool'), ('sus_level', 'f8'), ('heard_rumour','i4'),('cooldown','i4'),('got_rumour', 'i4')])
+        self.lattice = np.ndarray(shape=self.shape, dtype=self.features)
         
         # generate
         self.lattice['exists'] = self.p_dist.rvs(size=self.shape)
@@ -129,6 +129,8 @@ class Simulation:
         # decide to spread rumour based on the previous iteration
         it_decide = np.nditer(self.lattice, flags=['multi_index'], op_flags=['readwrite'])
         for cell in it_decide:
+            if cell['cooldown'] > 0:
+                continue
             """
             decide whether or not to pass on the rumour
             based on a number sampled uniformly at random
