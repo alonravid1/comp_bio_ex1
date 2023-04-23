@@ -5,7 +5,7 @@ from scipy.stats import rv_discrete
 
 class Simulation:
     
-    def __init__(self, p, l, iterations, s1, s2, s3, s4, shape=(100,100)):
+    def __init__(self, p, l, s1, s2, s3, s4, iterations=100, shape=(100,100)):
         """
         set parameters to board, create a lattice graph of
         people represented by a tuple of:
@@ -38,24 +38,29 @@ class Simulation:
         self.lattice[initial_x, initial_y]['cooldown'] = self.l
         
     
-    def run(self):
+    def run(self, preprocess = False):
         """
         runs the simulation using the class's set attributes.
         returns a numpy array where each index holds the lattice's
         got_rumour value in the respective iteration.
         """
-        frames = np.ndarray(shape=(self.iterations,100,100), dtype=self.features)
-
-        for i in range (self.iterations):
+        if preprocess:
+            frames = np.ndarray(shape=(self.iterations,100,100), dtype=self.features)
+            for i in range (self.iterations):
+                self.simulate_step()
+                # save rumour spreading matrix 
+                frames[i] = self.lattice
+                
+                # this is used to check the sim without the gui:
+                # plt.title(f"iteration number {i}")
+                # plt.imshow(self.lattice['got_rumour'])
+                # plt.pause(0.02)
+            return frames
+        else:
             self.simulate_step()
-            # save rumour spreading matrix 
-            frames[i] = self.lattice
-            
-            # this is used to check the sim without the gui:
-            # plt.title(f"iteration number {i}")
-            # plt.imshow(self.lattice['got_rumour'])
-            # plt.pause(0.02)
-        return frames
+            return self.lattice
+
+
         
             
     def create_cell_lattice(self):

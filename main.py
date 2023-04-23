@@ -101,11 +101,9 @@ If you close it before it finishes it will cause the gui to crash and you will n
             except:
                 pass
             exit()
-            
-        time.sleep(0.04)
         window.refresh()
 
-    def start_simulation(self, sim_values):
+    def start_simulation(self, sim_values, iterations):
         """
         creates the new simulation window, runs the simulation
         to get all itertion frames, and then show each one
@@ -120,25 +118,32 @@ If you close it before it finishes it will cause the gui to crash and you will n
         
         # run the simulation, save the generated frames
         simulation = sim.Simulation(*sim_values)
-        frames = simulation.run()
-        frames = frames[self.visuals]
-        # set window to middle of screen
-        screen_width, screen_height = window.get_screen_dimensions()
-        win_width, win_height = window.size
-        x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
-        window.move(x, y)
         
+        # set window to middle of screen
+        # screen_width, screen_height = window.get_screen_dimensions()
+        # win_width, win_height = window.size
+        # x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
+        # window.move(x, y)
+
+        
+
         # draw first frame and then move the
         # window to the middle of the screen
-        self.draw_frame(window, frames[0], 0)
+        frame = simulation.run()
+        frame = frame[self.visuals]
+        self.draw_frame(window, frame, 0)
+
         screen_width, screen_height = window.get_screen_dimensions()
         win_width, win_height = window.size
         x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
         window.move(x, y)
-        
+
         # draw the simulation frames
-        for i in range(1, frames.shape[0]):
-            self.draw_frame(window, frames[i], i)
+        for i in range(1, iterations):
+            frame = simulation.run()
+            frame = frame[self.visuals]
+            time.sleep(0.03)
+            self.draw_frame(window, frame, i)
             
         # show close button for simulation
         window['Close'].update(disabled=False)
@@ -190,19 +195,19 @@ If you close it before it finishes it will cause the gui to crash and you will n
             if event == 'Start Simulation':
                 # process user entered parameters
                 try:
-                    raw_sim_values = [float(values['p']), int(values['l']), int(values['iter']),
+                    raw_sim_values = [float(values['p']), int(values['l']),
                                 float(values['s1']), float(values['s2']), float(values['s3']), float(values['s4'])]
                     sim_values = [round(i, 2) for i in raw_sim_values]
-
+                    iterations = int(values['iter'])
                     
                     # check all values are positive
-                    if any(value < 0 for value in sim_values):
+                    if any(value < 0 for value in sim_values) or iterations < 0:
                         sg.popup('Values cannot be negative')
                         continue
-                    if (sim_values[1] < 1 or sim_values[2] <1):
-                        sg.popup('both l and number of iterations must be at least 1')
+                    if (sim_values[1] < 1 or iterations < 1):
+                        sg.popup('both L and number of iterations must be at least 1')
                         continue
-                    if sum(sim_values[3:]) != 1 :
+                    if sum(sim_values[2:]) != 1 :
                         sg.popup('distribution probability values must add up to 1')
                         continue
                     if sim_values[0] > 1 :
@@ -214,7 +219,7 @@ If you close it before it finishes it will cause the gui to crash and you will n
                     continue
                 
                 # sim_values = [0.7, 2, 15, 0.7, 0.15, 0.1, 0.05]
-                self.start_simulation(sim_values)
+                self.start_simulation(sim_values, iterations)
                 
                 
         self.window.close()
