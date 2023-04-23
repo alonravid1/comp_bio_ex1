@@ -69,7 +69,7 @@ If you close it before it finishes it will cause the gui to crash and you will n
         """
         fresh_layout = [[sg.Text(key="show_iter", font=self.AppFont)],
                     [sg.Image(key='frame'),
-                    [sg.Button('Close', font=self.AppFont, disabled=True)]]]
+                    [sg.Button('Close', font=self.AppFont)]]]
         
         return fresh_layout
         
@@ -94,14 +94,18 @@ If you close it before it finishes it will cause the gui to crash and you will n
         try:
             window['show_iter'].update(f"iteration number {iteration+1}")
             window['frame'].update("frame.png")
+            # set window to middle of screen
+            screen_width, screen_height = window.get_screen_dimensions()
+            win_width, win_height = window.size
+            x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
+            window.move(x, y)
         except:
             # delete frame file
             try:
                 os.remove("frame.png")
             except:
                 pass
-            exit()
-        window.refresh()
+
 
     def start_simulation(self, sim_values, iterations):
         """
@@ -119,24 +123,18 @@ If you close it before it finishes it will cause the gui to crash and you will n
         # run the simulation, save the generated frames
         simulation = sim.Simulation(*sim_values)
         
-        # set window to middle of screen
-        # screen_width, screen_height = window.get_screen_dimensions()
-        # win_width, win_height = window.size
-        # x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
-        # window.move(x, y)
+        
 
         
+        event = 'initial value'
 
         # draw first frame and then move the
         # window to the middle of the screen
         frame = simulation.run()
         frame = frame[self.visuals]
         self.draw_frame(window, frame, 0)
-
-        screen_width, screen_height = window.get_screen_dimensions()
-        win_width, win_height = window.size
-        x, y = (screen_width - win_width)//2, (screen_height - win_height)//2
-        window.move(x, y)
+        event, values = window.read(timeout=2)
+        
 
         # draw the simulation frames
         for i in range(1, iterations):
@@ -144,9 +142,17 @@ If you close it before it finishes it will cause the gui to crash and you will n
             frame = frame[self.visuals]
             time.sleep(0.03)
             self.draw_frame(window, frame, i)
+            event, values = window.read(timeout=2)
+            if event == 'Close':
+                window.close()
+                # delete frame file
+                try:
+                    os.remove("frame.png")
+                except:
+                    pass
+                break
             
-        # show close button for simulation
-        window['Close'].update(disabled=False)
+
         
         event = 'initial value'
         while event != sg.WIN_CLOSED and event != 'Close':
