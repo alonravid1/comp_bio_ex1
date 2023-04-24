@@ -18,7 +18,7 @@ At the start of an iteration, the heard rumour counters are reset to 0 for each 
 
 The spreader is then set to cooldown for several iterations as noted above, and his neighbors add 1 to the counter of how many times they have heard the rumour this iteration.
 
-The next part of an iteration is going over each cell which has heard the rumour, and deciding if it believes it according to its susciptibilty levl. If so, it will do so in the next iteration as noted above.
+The next part of an iteration is going over each cell which has heard the rumour, and deciding if it believes it according to its susceptibilty level. If so, it will do so in the next iteration as noted above.
 
 ## Analysis of Randomly Generated Matrix
-At first 
+At first, I tried running the simulation with the arbitrary values of p=0.7, l=2, 

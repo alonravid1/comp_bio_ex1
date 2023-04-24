@@ -35,7 +35,9 @@ class Gui:
             
             [sg.Text('Visualisation Type', font=self.AppFont),
               sg.Button('Spread Cooldown', font=self.AppFont, disabled=True),
-              sg.Button('Rumour Heard', font=self.AppFont)],
+              sg.Button('Rumour Heard', font=self.AppFont),
+              sg.Button('Times Rumour Spread', font=self.AppFont),
+              sg.Button('None', font=self.AppFont)],
 
             [sg.Button('Information', font=self.AppFont)],
             [sg.Button('Start Simulation', font=self.AppFont)],
@@ -54,9 +56,7 @@ Enter 4 fractions summing up to a total of 1.
 Visualisation types:
 * Spread Cooldown - Color cells by how many iterations remain until it can spread the rumour again. A cell which spreads the rumour becomes bright and fades until it can spread it again.
 * Rumour Heard - Colors cells by how many times they have heard the rumour in the same iteration, i.e. how many neighbors have spread it.
-
-Upon clicking start simulation the program will take a few seconds to run the simulation before displaying it.
-If you close it before it finishes it will cause the gui to crash and you will need to close it.
+* Times Rumour Spread - Colors cells by how many times they have spread the rumour throughout the simulation.
 """
         # self.start()
         
@@ -67,14 +67,15 @@ If you close it before it finishes it will cause the gui to crash and you will n
         than trying to create a template and starting to work on
         deep copying the very flexible nested arrays of elements.
         """
-        fresh_layout = [[sg.Text(key="show_iter", font=self.AppFont)],
-                    [sg.Image(key='frame'),
-                    [sg.Button('Close', font=self.AppFont)]]]
+        fresh_layout = [
+                    [sg.Text(key="show_iter", font='any 18'), sg.Text(key="stats", font='any 18')],
+                    [sg.Image(key='frame')]
+                    ]
         
         return fresh_layout
         
            
-    def draw_frame(self, window, frame, iteration,):
+    def draw_frame(self, window, frame, iteration, stats):
         """
         function resizes the given frame to be bigger, saves it
         as an image and then shows it on the GUI for 0.05 of a second
@@ -92,7 +93,8 @@ If you close it before it finishes it will cause the gui to crash and you will n
         plt.imsave("frame.png", resized_frame, cmap='magma')
 
         try:
-            window['show_iter'].update(f"iteration number {iteration+1}")
+            window['show_iter'].update(f"Iteration number: {iteration+1}")
+            window['stats'].update(f"Percent heard: {round(stats*100, 2)}%")
             window['frame'].update("frame.png")
             # set window to middle of screen
             screen_width, screen_height = window.get_screen_dimensions()
@@ -122,17 +124,30 @@ If you close it before it finishes it will cause the gui to crash and you will n
         
         # run the simulation, save the generated frames
         simulation = sim.Simulation(*sim_values)
-        
-        
-
-        
         event = 'initial value'
+
+        if self.visuals == 'None':
+            frames = simulation.run(preprocess=True)
+            stats = simulation.get_stats()
+            self.draw_frame(window, frames[iterations-1]['got_rumour'], iterations-1, stats)
+            while event != sg.WIN_CLOSED:
+                event, values = window.read(timeout=200)
+            window.close()
+            # delete frame file
+            try:
+                os.remove("frame.png")
+            except:
+                pass
+            # sim closed and frame deleted, stop function
+            return
+
 
         # draw first frame and then move the
         # window to the middle of the screen
         frame = simulation.run()
         frame = frame[self.visuals]
-        self.draw_frame(window, frame, 0)
+        stats = 0
+        self.draw_frame(window, frame, 0, stats)
         event, values = window.read(timeout=2)
         
 
@@ -140,31 +155,38 @@ If you close it before it finishes it will cause the gui to crash and you will n
         for i in range(1, iterations):
             frame = simulation.run()
             frame = frame[self.visuals]
+            if i%3 == 0:
+                stats = simulation.get_stats()
+            
             time.sleep(0.03)
-            self.draw_frame(window, frame, i)
+            self.draw_frame(window, frame, i, stats)
             event, values = window.read(timeout=2)
-            if event == 'Close':
+            if event == sg.WIN_CLOSED:
                 window.close()
                 # delete frame file
                 try:
                     os.remove("frame.png")
                 except:
                     pass
-                break
+                # sim closed and frame deleted, stop function
+                return
             
 
-        
-        event = 'initial value'
-        while event != sg.WIN_CLOSED and event != 'Close':
+        while event != sg.WIN_CLOSED:
             event, values = window.read(timeout=200)
-        
+
+        window.close()
+
         # delete frame file
         try:
             os.remove("frame.png")
         except:
             pass
 
-        window.close()
+        
+        
+
+        
 
 
     def start(self):
@@ -189,11 +211,29 @@ If you close it before it finishes it will cause the gui to crash and you will n
                 self.visuals = 'cooldown'
                 self.window['Spread Cooldown'].update(disabled=True)
                 self.window['Rumour Heard'].update(disabled=False)
+                self.window['Times Rumour Spread'].update(disabled=False)
 
             if event == 'Rumour Heard':
                 self.visuals = 'heard_rumour'
                 self.window['Rumour Heard'].update(disabled=True)
                 self.window['Spread Cooldown'].update(disabled=False)
+                self.window['Times Rumour Spread'].update(disabled=False)
+                self.window['None'].update(disabled=False)
+
+            if event == 'Times Rumour Spread':
+                self.visuals = 'got_rumour'
+                self.window['Times Rumour Spread'].update(disabled=True)
+                self.window['Rumour Heard'].update(disabled=False)
+                self.window['Spread Cooldown'].update(disabled=False)
+                self.window['None'].update(disabled=False)
+
+            if event == 'None':
+                self.visuals = 'None'
+                self.window['None'].update(disabled=True)
+                self.window['Times Rumour Spread'].update(disabled=False)
+                self.window['Rumour Heard'].update(disabled=False)
+                self.window['Spread Cooldown'].update(disabled=False)
+                
 
             if event == 'Information':
                 sg.popup(self.infotext, font=self.AppFont)

@@ -102,7 +102,7 @@ class Simulation:
             if self.lattice[i, j+1]['exists']:
                 self.lattice[i, j+1]['heard_rumour'] += 1
 
-        self.lattice[i, j]['got_rumour'] += 1
+        self.lattice[i, j]['got_rumour'] = 1
         
     def simulate_step(self):
         """
@@ -152,30 +152,51 @@ class Simulation:
             else:
                 # cell has not heard rumour and will not spread it
                 pass
+
+    def get_stats(self):
+        heard_rumour = 0
+        it_spread = np.nditer(self.lattice)
+        for cell in it_spread:
+            if not cell['exists']:
+            # no person in lattice cell
+                continue
+            if cell['got_rumour'] > 0:
+                heard_rumour += 1
+        percent_heard = heard_rumour / (self.shape[0]*self.shape[1])
+        return percent_heard
+
                     
                     
 
 
 
-# if __name__ == '__main__':
-#     # pop density parameter
-#     p = 0.8
+if __name__ == '__main__':
+    # pop density parameter
+    p = 0.85
 
-#     # rumour spreading cooldown parameter
-#     l = 2
+    # rumour spreading cooldown parameter
+    l = 5
 
-#     # num of iterations parameter
-#     iterations = 100
+    # num of iterations parameter
+    iterations = 10
 
-#     # susceptibility level probability parameters
-#     s1 = 0.9
-#     s2 = 0.1
-#     s3 = 0
-#     s4 = 0
+    # susceptibility level probability parameters
+    s1 = 0.7
+    s2 = 0.15
+    s3 = 0.1
+    s4 = 0.05
+    raw_sim_values = [p, l, s1, s2, s3, s4, iterations]
+    sim_values = [round(i, 2) for i in raw_sim_values]
+   
 
-#     # sim = Simulation(p, l, iterations, s1, s2, s3, s4)
-
-#     sim = Simulation(0.7, 2, 15, 0.7, 0.15, 0.1, 0.05)
-#     frames = sim.run()
+    # sim = Simulation(0.7, 2, 15, 0.7, 0.15, 0.1, 0.05)
+    average_spread = 0
+    repeats = 5
+    for i in range(repeats):
+        sim = Simulation(*sim_values)
+        sim.run(preprocess=True)
+        average_spread += sim.get_stats()
+    average_spread = average_spread/repeats
+    print(average_spread)
     
         
