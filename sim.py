@@ -14,7 +14,6 @@ class Simulation:
         """
         if p == 0 :
             exit(-1)
-
         self.p_dist = rv_discrete(values=([False, True], [(1-p), p]))
         self.sus_dist = rv_discrete(values=([1, 2/3, 1/3, 0 ], [s1, s2, s3, s4]))
 
@@ -89,20 +88,24 @@ class Simulation:
         if i > 0:
             if self.lattice[i-1, j]['exists']:
                 self.lattice[i-1, j]['heard_rumour'] += 1
+                self.lattice[i-1, j]['got_rumour'] += 1
 
         if i < self.shape[0]-1:
             if self.lattice[i+1, j]['exists']:
                 self.lattice[i+1, j]['heard_rumour'] += 1
+                self.lattice[i+1, j]['got_rumour'] += 1
 
         if j > 0:
             if self.lattice[i, j-1]['exists']:
                 self.lattice[i, j-1]['heard_rumour'] += 1
+                self.lattice[i, j-1]['got_rumour'] += 1
 
         if j < self.shape[1]-1:
             if self.lattice[i, j+1]['exists']:
                 self.lattice[i, j+1]['heard_rumour'] += 1
+                self.lattice[i, j+1]['got_rumour'] += 1
 
-        self.lattice[i, j]['got_rumour'] += 1
+        # self.lattice[i, j]['got_rumour'] += 1
         
     def simulate_step(self):
         """
@@ -162,41 +165,10 @@ class Simulation:
                 continue
             if cell['got_rumour'] > 0:
                 heard_rumour += 1
-        percent_heard = heard_rumour / (self.shape[0]*self.shape[1])
-        return percent_heard
 
-                    
-                    
-
-
-
-if __name__ == '__main__':
-    # pop density parameter
-    p = 0.85
-
-    # rumour spreading cooldown parameter
-    l = 5
-
-    # num of iterations parameter
-    iterations = 100
-
-    # susceptibility level probability parameters
-    s1 = 0.7
-    s2 = 0.15
-    s3 = 0.1
-    s4 = 0.05
-    raw_sim_values = [p, l, s1, s2, s3, s4, iterations]
-    sim_values = [round(i, 2) for i in raw_sim_values]
-   
-
-    # sim = Simulation(0.7, 2, 15, 0.7, 0.15, 0.1, 0.05)
-    average_spread = 0
-    repeats = 30
-    for i in range(repeats):
-        sim = Simulation(*sim_values)
-        sim.run(preprocess=True)
-        average_spread += sim.get_stats()
-    average_spread = average_spread/repeats
-    print(average_spread)
-    
+        # divide by dead precent, since the relevant number of cells in the lattice is
+        # that percentage times the total number of cells.
+        dead_percent = self.p_dist.pmf(1)
+        percent_heard = heard_rumour / (self.shape[0] * self.shape[1] * dead_percent)
+        return percent_heard 
         

@@ -6,6 +6,9 @@ In this report I will analyse the spread of rumours in a 100 by 100 cell matrix.
 ## Table of Contents
 1. [Parameters](#parm)
 2. [Iteration Step](#it)
+3. [Initial Analysis](#init)
+4. [Statistical Analysis](#sat)
+
 ## Parameters <a name="parm"></a>
 The simulation is defined by the following parameters:
 * P - portion of the cells that are inhibited.
@@ -20,7 +23,24 @@ The spreader is then set to cooldown for several iterations as noted above, and 
 
 The next part of an iteration is going over each cell which has heard the rumour, and deciding if it believes it according to its susceptibilty level. If so, it will do so in the next iteration as noted above.
 
-## Analysis of Randomly Generated Matrix
-At first, I tried running the simulation with the arbitrary values of p=0.7, l=2, s1=0.3, s2=0.3, s3=0.2, s4=0.2 for 100 iterations. After multiple runs, the simulation consistently presented a very small spread that had completely stopped after between 5-20 iterations.
+## Initial Analysis <a name="init"></a>
+At first, before running the simulation many times with changing parameters, I tried manually running the simulation a handfull of times. I started with the arbitrary values of p=0.7, l=2, s1=0.3, s2=0.3, s3=0.2, s4=0.2 for 100 iterations. After multiple runs, the simulation consistently presented a very small spread that had completely stopped after between 5-20 iterations.
 
-I then tried shifting the susceptibilty distribution left, setting the variables at s1=0.7, s2=0.15, s3=0.1, s4=0.05.
+I then tried shifting the susceptibilty distribution left, setting the variables at s1=0.7, s2=0.15, s3=0.1, s4=0.05. The resulting spread is shown bellow:
+
+![Simulation Result](p_7_s1_7_s2_2_s3_15.png)
+
+Already this is a much better result in terms of spread capacity, as the rumour manages to spread throughout the lattice of cells rather than become quickly fade away.
+
+To achieve a higher percentage cover I realised the portion of living cells needs to be increased, the result of using p=0.85 is:
+
+![Simulation Result](p_85.png)
+
+Indeed the total spread appears to have increased, but it could also be that a 100 iterations is too much, or that this single result is unrepresentative. Due to the fact that the total spread is directly tied mostly to both portion of living cells, suceptibilty levels and total number of iterations, I have decided to fix the latter parameter for my analysis.
+
+I will investigate the effects of changing the distribution of susceptibilty levels and portion of living cells on the total spread and rate of spread over 100 iterations.
+
+## Statistical Analysis <a name="sat"></a>
+### Fixing P First
+First I started by setting p to be 0.8, based on the initial analysis. I then ran the simulation with the parameter L=5, and the following sets of distributions of susceptibilty levels:
+ 
