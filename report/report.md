@@ -21,4 +21,6 @@ The spreader is then set to cooldown for several iterations as noted above, and 
 The next part of an iteration is going over each cell which has heard the rumour, and deciding if it believes it according to its susceptibilty level. If so, it will do so in the next iteration as noted above.
 
 ## Analysis of Randomly Generated Matrix
-At first, I tried running the simulation with the arbitrary values of p=0.7, l=2, 
+At first, I tried running the simulation with the arbitrary values of p=0.7, l=2, s1=0.3, s2=0.3, s3=0.2, s4=0.2 for 100 iterations. After multiple runs, the simulation consistently presented a very small spread that had completely stopped after between 5-20 iterations.
+
+I then tried shifting the susceptibilty distribution left, setting the variables at s1=0.7, s2=0.15, s3=0.1, s4=0.05.

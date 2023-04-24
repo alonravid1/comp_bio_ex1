@@ -102,7 +102,7 @@ class Simulation:
             if self.lattice[i, j+1]['exists']:
                 self.lattice[i, j+1]['heard_rumour'] += 1
 
-        self.lattice[i, j]['got_rumour'] = 1
+        self.lattice[i, j]['got_rumour'] += 1
         
     def simulate_step(self):
         """
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     l = 5
 
     # num of iterations parameter
-    iterations = 10
+    iterations = 100
 
     # susceptibility level probability parameters
     s1 = 0.7
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
     # sim = Simulation(0.7, 2, 15, 0.7, 0.15, 0.1, 0.05)
     average_spread = 0
-    repeats = 5
+    repeats = 30
     for i in range(repeats):
         sim = Simulation(*sim_values)
         sim.run(preprocess=True)

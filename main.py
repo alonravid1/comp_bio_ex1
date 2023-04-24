@@ -18,7 +18,7 @@ class Gui:
         
         # set main window's layout
         self.main_layout = [
-            [sg.Text('Enter parameters:', font=self.AppFont)],
+            [sg.Text('Enter parameters:', font='Any 18')],
             [sg.Text('P:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont, default_text='0.85')],
             [sg.Text('L:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont, default_text='5')],
                     
@@ -39,8 +39,16 @@ class Gui:
               sg.Button('Times Rumour Spread', font=self.AppFont),
               sg.Button('None', font=self.AppFont)],
 
-            [sg.Button('Information', font=self.AppFont)],
             [sg.Button('Start Simulation', font=self.AppFont)],
+
+            [sg.Text('Generate Statistics:', font='Any 18')],
+            [sg.Text('Number of Repeats:',font=self.AppFont),
+             sg.Input(key='repeats', size=(15,1), font=self.AppFont, default_text='30')],
+            [sg.Button('Generate Statistics', font=self.AppFont)],
+
+            
+            
+            [sg.Button('Information', font=self.AppFont)],
             [sg.Button('Exit', font=self.AppFont)]
             ]
         
@@ -57,6 +65,9 @@ Visualisation types:
 * Spread Cooldown - Color cells by how many iterations remain until it can spread the rumour again. A cell which spreads the rumour becomes bright and fades until it can spread it again.
 * Rumour Heard - Colors cells by how many times they have heard the rumour in the same iteration, i.e. how many neighbors have spread it.
 * Times Rumour Spread - Colors cells by how many times they have spread the rumour throughout the simulation.
+
+Generate Statistics:
+Set the number of repetitions, the simulation the runs for that number of times without visualisation, and then writes the average spread in a popup window.
 """
         # self.start()
         
@@ -109,7 +120,7 @@ Visualisation types:
                 pass
 
 
-    def start_simulation(self, sim_values, iterations):
+    def start_simulation(self, sim_values):
         """
         creates the new simulation window, runs the simulation
         to get all itertion frames, and then show each one
@@ -122,17 +133,20 @@ Visualisation types:
                                     resizable=True,
                                     element_justification="left")
         
-        # run the simulation, save the generated frames
         simulation = sim.Simulation(*sim_values)
+        iterations = sim_values[-1]
         event = 'initial value'
 
         if self.visuals == 'None':
             frames = simulation.run(preprocess=True)
             stats = simulation.get_stats()
             self.draw_frame(window, frames[iterations-1]['got_rumour'], iterations-1, stats)
+
             while event != sg.WIN_CLOSED:
                 event, values = window.read(timeout=200)
+
             window.close()
+
             # delete frame file
             try:
                 os.remove("frame.png")
@@ -155,9 +169,12 @@ Visualisation types:
         for i in range(1, iterations):
             frame = simulation.run()
             frame = frame[self.visuals]
-            if i%3 == 0:
+
+            if i % 5 == 0 or i == (iterations-1):
+                # update every 5 steps and at the end to speed the sim up
                 stats = simulation.get_stats()
             
+            # if rendering is fast, prevent instant presentation of all frames
             time.sleep(0.03)
             self.draw_frame(window, frame, i, stats)
             event, values = window.read(timeout=2)
@@ -184,7 +201,34 @@ Visualisation types:
             pass
 
         
+    def process_values(self, values):
+        try:
+            raw_sim_values = [float(values['p']), int(values['l']),
+                        float(values['s1']), float(values['s2']),
+                        float(values['s3']), float(values['s4']), int(values['iter'])]
+            
+            sim_values = [round(i, 2) for i in raw_sim_values]
+            
+            # check all values are positive
+            if any(value < 0 for value in sim_values):
+                sg.popup('Values cannot be negative')
+                return None
+            if (sim_values[1] < 1 or sim_values[-1] < 1):
+                sg.popup('both L and number of iterations must be at least 1')
+                return None
+            if sum(sim_values[2:-1]) != 1 :
+                sg.popup('distribution probability values must add up to 1')
+                return None
+            if sim_values[0] > 1 :
+                sg.popup('P value must be between 0 and 1')
+                return None
+            
+            return sim_values
         
+        except:
+            sg.popup('Error parsing input')
+            return None
+                
 
         
 
@@ -234,38 +278,29 @@ Visualisation types:
                 self.window['Rumour Heard'].update(disabled=False)
                 self.window['Spread Cooldown'].update(disabled=False)
                 
+            if event == 'Generate Statistics':
+                average_spread = 0
+                repeats = int(values['repeats'])
+                sim_values = self.process_values(values)
+                for i in range(repeats):
+                    simulation = sim.Simulation(*sim_values)
+                    simulation.run(preprocess=True)
+                    average_spread += simulation.get_stats()
+
+                average_spread = average_spread/repeats
+                sg.popup(f"Average Spread: {round(average_spread*100, 2)}%", font=self.AppFont)
 
             if event == 'Information':
                 sg.popup(self.infotext, font=self.AppFont)
 
             if event == 'Start Simulation':
                 # process user entered parameters
-                try:
-                    raw_sim_values = [float(values['p']), int(values['l']),
-                                float(values['s1']), float(values['s2']), float(values['s3']), float(values['s4'])]
-                    sim_values = [round(i, 2) for i in raw_sim_values]
-                    iterations = int(values['iter'])
-                    
-                    # check all values are positive
-                    if any(value < 0 for value in sim_values) or iterations < 0:
-                        sg.popup('Values cannot be negative')
-                        continue
-                    if (sim_values[1] < 1 or iterations < 1):
-                        sg.popup('both L and number of iterations must be at least 1')
-                        continue
-                    if sum(sim_values[2:]) != 1 :
-                        sg.popup('distribution probability values must add up to 1')
-                        continue
-                    if sim_values[0] > 1 :
-                        sg.popup('P value must be between 0 and 1')
-                        continue
-                    
-                except:
-                    sg.popup('Error parsing input')
+                sim_values = self.process_values(values)
+
+                if sim_values == None:
                     continue
-                
                 # sim_values = [0.7, 2, 15, 0.7, 0.15, 0.1, 0.05]
-                self.start_simulation(sim_values, iterations)
+                self.start_simulation(sim_values)
                 
                 
         self.window.close()
