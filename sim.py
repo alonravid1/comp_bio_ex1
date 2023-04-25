@@ -6,12 +6,23 @@ from scipy.stats import rv_discrete
 class Simulation:
     
     def __init__(self, p, l, s1, s2, s3, s4, iterations=100, shape=(100,100)):
-        """
-        set parameters to board, create a lattice graph of
+        """        
+        sets parameters to board, create a lattice graph of
         people represented by a tuple of:
         (existing, susceptibility level, has heard rumor, has passed rumor)
         which allow the simulation to check each Cell's status
+
+        Args:
+            p (float): portion of existing cells
+            l (int): number of iterations cooldown on spreading a rumour
+            s1 (float): level one susceptibility portion
+            s2 (float): level two susceptibility portion
+            s3 (float): level three susceptibility portion
+            s4 (float): level four susceptibility portion
+            iterations (int, optional): number of iterations. Defaults to 100.
+            shape (tuple, optional): shape of the lattice. Defaults to (100,100).
         """
+
         if p == 0 :
             exit(-1)
         self.p_dist = rv_discrete(values=([False, True], [(1-p), p]))
@@ -37,24 +48,36 @@ class Simulation:
         self.lattice[initial_x, initial_y]['cooldown'] = self.l
         
     
-    def run(self, preprocess = False):
+    def run(self, preprocess = False, stats_sr = 5):
         """
         runs the simulation using the class's set attributes.
         returns a numpy array where each index holds the lattice's
         got_rumour value in the respective iteration.
+        
+
+        Args:
+            preprocess (bool, optional): if true, runs the whole simulation and then returns
+            an array of all iterations. Defaults to False.
+
+        Returns:
+            the simulation's lattice, or an array of all lattices throughout the simulation
         """
         if preprocess:
             frames = np.ndarray(shape=(self.iterations,100,100), dtype=self.features)
+            stats = np.zeros(self.iterations//stats_sr)
             for i in range (self.iterations):
                 self.simulate_step()
                 # save rumour spreading matrix 
                 frames[i] = self.lattice
+                if i % stats_sr == 0:
+                    index = (i//stats_sr)
+                    stats[index] = self.get_stats() 
                 
                 # this is used to check the sim without the gui:
                 # plt.title(f"iteration number {i}")
                 # plt.imshow(self.lattice['got_rumour'])
                 # plt.pause(0.02)
-            return frames
+            return frames, stats
         else:
             self.simulate_step()
             return self.lattice
@@ -64,7 +87,7 @@ class Simulation:
             
     def create_cell_lattice(self):
         """
-        create a new lattice graph of people with random assignments according
+        creates a new lattice graph of people with random assignments according
         to the given distribution parameters
         """
         self.features = np.dtype([('exists', 'bool'), ('sus_level', 'f8'), ('heard_rumour','i4'),('cooldown','i4'),('got_rumour', 'i4')])
@@ -171,4 +194,3 @@ class Simulation:
         dead_percent = self.p_dist.pmf(1)
         percent_heard = heard_rumour / (self.shape[0] * self.shape[1] * dead_percent)
         return percent_heard 
-        

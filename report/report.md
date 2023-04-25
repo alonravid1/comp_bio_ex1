@@ -38,9 +38,27 @@ To achieve a higher percentage cover I realised the portion of living cells need
 
 Indeed the total spread appears to have increased, but it could also be that a 100 iterations is too much, or that this single result is unrepresentative. Due to the fact that the total spread is directly tied mostly to both portion of living cells, suceptibilty levels and total number of iterations, I have decided to fix the latter parameter for my analysis.
 
-I will investigate the effects of changing the distribution of susceptibilty levels and portion of living cells on the total spread and rate of spread over 100 iterations.
+After doing so, will investigate the effects of changing the distribution of susceptibilty levels and the cooldown factor L on the total spread and rate of spread over 100 iterations.
 
 ## Statistical Analysis <a name="sat"></a>
 ### Fixing P First
 First I started by setting p to be 0.8, based on the initial analysis. I then ran the simulation with the parameter L=5, and the following sets of distributions of susceptibilty levels:
+```python
+distributions = [
+[0.7, 0.15, 0.1, 0.05], [0.6, 0.15, 0.1, 0.15],
+[0.6, 0.15, 0.15, 0.1], [0.5, 0.2, 0.15, 0.15],
+[0.5, 0.25, 0.15, 0.1], [0.4, 0.25, 0.2, 0.15],
+[0.4, 0.2, 0.2, 0.2], [0.4, 0.3, 0.2, 0.1],
+[0.3, 0.25, 0.2, 0.15], [0.3, 0.25, 0.25, 0.2]
+]
+```
+the results are:
+
+[0.7626117647058824, 0.6141960784313726, 0.6853254901960784, 0.426635294117647, 0.43679215686274503, 0.14780392156862746, 0.032211764705882356, 0.2930352941176471, 0.1912156862745098, 0.0192078431372549]
  
+### Fixing P and Susceptibilty levels
+I then fixed the susceptibilty levels to be ...
+and the results are:
+
+[0.8076549019607843, 0.807827450980392, 0.7735058823529412, 0.7906823529411765, 0.747835294117647, 0.8088470588235295, 0.8078352941176469, 0.7378196078431374]
+
