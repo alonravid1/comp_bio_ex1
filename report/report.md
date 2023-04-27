@@ -8,6 +8,7 @@ In this report I will analyse the spread of rumours in a 100 by 100 cell matrix.
 2. [Iteration Step](#it)
 3. [Initial Analysis](#init)
 4. [Statistical Analysis](#sat)
+5. [Strategic Simulation](#strat)
 
 ## Parameters <a name="parm"></a>
 The simulation is defined by the following parameters:
@@ -41,24 +42,50 @@ Indeed the total spread appears to have increased, but it could also be that a 1
 After doing so, will investigate the effects of changing the distribution of susceptibilty levels and the cooldown factor L on the total spread and rate of spread over 100 iterations.
 
 ## Statistical Analysis <a name="sat"></a>
-### Fixing P First
-First I started by setting p to be 0.8, based on the initial analysis. I then ran the simulation with the parameter L=5, and the following sets of distributions of susceptibilty levels:
-```python
-distributions = [
-[0.7, 0.15, 0.1, 0.05], [0.6, 0.15, 0.1, 0.15],
-[0.6, 0.15, 0.15, 0.1], [0.5, 0.2, 0.15, 0.15],
-[0.5, 0.25, 0.15, 0.1], [0.4, 0.25, 0.2, 0.15],
-[0.4, 0.2, 0.2, 0.2], [0.4, 0.3, 0.2, 0.1],
-[0.3, 0.25, 0.2, 0.15], [0.3, 0.25, 0.25, 0.2]
-]
-```
-the results are:
+### Fixing P and L
+First I started by setting p to be 0.8, based on the initial analysis. I then ran the simulation 15 times with the parameter L=5, and a series of distributions of susceptibilty levels, taking the average spread at every 5 iterations. The series began at s1=0.7, s2=0.15, s3=0.1, s4=0.05 and ended with s1=0.3, s2=0.25, s3=0.25, s4=0.2, with each distribution in between shifting more the the center, represented by lower values of STD.
 
-[0.7626117647058824, 0.6141960784313726, 0.6853254901960784, 0.426635294117647, 0.43679215686274503, 0.14780392156862746, 0.032211764705882356, 0.2930352941176471, 0.1912156862745098, 0.0192078431372549]
+The results are presented in the following graph:
+
+![Distributions Results](Distributions.png)
  
 ### Fixing P and Susceptibilty levels
-I then fixed the susceptibilty levels to be ...
-and the results are:
+I first fixed the susceptibilty levels to the first distribution as written above, with the intent of seeing how the L parameter affects the distribution's high spread rate.
+The results are presented in the following graph:
+![L First Results](L.png)
 
-[0.8076549019607843, 0.807827450980392, 0.7735058823529412, 0.7906823529411765, 0.747835294117647, 0.8088470588235295, 0.8078352941176469, 0.7378196078431374]
+The graph clearly shows that for a distribution with a high spread rate the L parameter's effect is quite small. Following this result, I ran the simulation similarly as above, 15 times taking the average, sampling the spread every 5 iterations. This time I ran it with the distribution [0.4, 0.2, 0.2, 0.2], whose spread was almost linear.
+![Low STD L Results](L_lower_STD.png)
 
+The results shows a much greater effect of L on the spread rate, with L=3 and L=4 show a linear spread of the rumour. L values above 4 show stagnation of spread, meaning at those levels the rumour stops spreading quickly.
+
+Using this data, I have determined that a reasonable set of parameters with the fixed p=0.8, is a distribution of susceptibilty levels of s1=0.7, s2=0.15, s3=0.1, s4=0.05, and L=6. The result is shown in the first graph of L Spread Rates, coming at about 50% spread at the end, with the most mild rate of increase.
+
+As a note, due to the fact that throughout the graphs each curve appears to have a consistent increase in spread, the chosen number of iterations appears to be a valid choice for investigating the simulation. If some graphs had shown inconsistent increases I would have revised this section, trying to also change the number of iterations parameter.
+
+## Strategic Simulation <a name="strat"></a>
+The next part of the report will deal with strategies for placing cells of different susceptibilty levels, instead of randomly assigning them, and searching for a strategy which significantly slows down the spread of rumours. 
+
+The parameters for this type of simulation are p=1, meaning all cells are occupied, since otherwise any strategic structures of cells might not work simply due to missing cells. In addition, I will be using L=5 like before.
+
+The first strategy I tested was a test strategy - all cells have susceptibilty level of 1. I only expected to see if the strategic placement worked or not, but to my suprise I discovered an interesting behaviour, where the rumour spread exactly like a wave, without ever tracing back. This is due to the fact that once each cell has spread the rumour, the cells to his sides except for the wave direction have spread the rumour recently and cannot pass it again to the back.
+
+The wave at 25 iterations looks like this:
+
+![Wave Result](interesting_res.png)
+
+where the "colder" dots represent a lower cooldown until the rumour can be spread again.
+This result informed me that a good rumour, which doesnt spread too fast but doesnt fade away, must be contained in an asymetrical area, or one with different types of susceptibilty levels to prevent the synchronised movement and thus lack of ignition of the rumour.
+
+I decided that a fitting solution would be creating 5 by 5 cell blocks of s1 cells, which enable the rumour to quickly spread without fading, with a column of s3, s3, s2, s3, s3 cells, which have a lower probabilty of passing the rumour to the next block, allowing it to propegate but prevents the synchronising of blocks and thus preventing the rumour from fading.
+
+The result of this strategy with 100 iterations:
+
+![Slow Spread 100](slow_spread_100.png)
+
+The result of this strategy with 300 iterations:
+
+![Slow Spread 100](slow_spread_300.png)
+
+clearly in these examples, the rumour spread was slow and relatively contained.
+After running this multiple times manually, it seems most strategic simulation runs end with about 23% spread.

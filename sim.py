@@ -5,7 +5,7 @@ from scipy.stats import rv_discrete
 
 class Simulation:
     
-    def __init__(self, p, l, s1, s2, s3, s4, iterations=100, shape=(100,100)):
+    def __init__(self, p, l, s1, s2, s3, s4, iterations=100, shape=(100,100), strategy=None):
         """        
         sets parameters to board, create a lattice graph of
         people represented by a tuple of:
@@ -21,6 +21,7 @@ class Simulation:
             s4 (float): level four susceptibility portion
             iterations (int, optional): number of iterations. Defaults to 100.
             shape (tuple, optional): shape of the lattice. Defaults to (100,100).
+            lattice (ndarry, optional): a predefined lattice to use in the simulation.
         """
 
         if p == 0 :
@@ -31,7 +32,10 @@ class Simulation:
         self.l = l
         self.shape = shape
         self.iterations = iterations
-        self.create_cell_lattice()
+        if strategy == None:
+            self.create_cell_lattice()
+        else:
+            self.lattice = strategy()
         
         initial_x = np.random.randint(low=0, high=self.shape[0])
         initial_y = np.random.randint(low=0, high=self.shape[1])
@@ -102,10 +106,14 @@ class Simulation:
         
 
     def spread_rumour(self, i, j):
-        """
-        this function is called when a cell decides to spread a rumour,
+        """this function is called when a cell decides to spread a rumour,
         it adds 1 to each neighbour's heard_rumour attribute
-        """
+
+        Args:
+            i (int): current cell's row
+            j (int): current cell's column
+        """        
+
         
         # if is split to prevent errors when at lattice's edge
         if i > 0:

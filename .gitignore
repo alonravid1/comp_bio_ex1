@@ -4,3 +4,4 @@ dist
 build
 _pycache_
 *.pyc
+*.png

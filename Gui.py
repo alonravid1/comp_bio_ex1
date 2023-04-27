@@ -7,17 +7,27 @@ import os
 
 
 class Gui:
-    def __init__(self):
+    def __init__(self, strategy=None):
+        """initialise the GUI, start the main loop and show main screen
+
+        Args:
+            strategy (function, optional): a strategy function, which generates a lattice of cells
+            according to a strategy and returns it, used inside the strategic simulation.
+        """        
+        
         # setting general GUI properties
         sg.theme('DarkAmber')
-
-        self.AppFont = 'Any 14'
-        self.shape = (500, 500)
-        self.matrix_shape = (100,100)
-        self.visuals = 'cooldown'
         
+        self.AppFont = 'Any 14' # font
+        self.shape = (500, 500) # size of simulation presented to user, not simulation dimensions!
+        self.matrix_shape = (100,100)
+        self.visuals = 'cooldown' # visualisation type, default is cooldown
+        self.strategy = strategy
+
         # set main window's layout
         self.main_layout = [
+            [sg.Button('Information', font=self.AppFont)],
+            # set parameters
             [sg.Text('Enter parameters:', font='Any 18')],
             [sg.Text('P:',font=self.AppFont), sg.Input(key='p', size=(15,1), font=self.AppFont, default_text='0.85')],
             [sg.Text('L:',font=self.AppFont), sg.Input(key='l', size=(15,1), font=self.AppFont, default_text='5')],
@@ -33,12 +43,14 @@ class Gui:
              sg.Text('S4',font=self.AppFont), sg.Input(key='s4', size=(15,1), font=self.AppFont, default_text='0.05')
             ],
             
+            # set visualisation type
             [sg.Text('Visualisation Type', font=self.AppFont),
               sg.Button('Spread Cooldown', font=self.AppFont, disabled=True),
               sg.Button('Rumour Heard', font=self.AppFont),
               sg.Button('Times Rumour Heard', font=self.AppFont),
               sg.Button('None', font=self.AppFont)],
-
+            
+            # run different kinds of simulation
             [sg.Button('Start Simulation', font=self.AppFont)],
 
             [sg.Text('Generate Statistics:', font='Any 18')],
@@ -47,8 +59,7 @@ class Gui:
             [sg.Button('Generate Statistics', font=self.AppFont)],
 
             
-            
-            [sg.Button('Information', font=self.AppFont)],
+            [sg.Button('Strategic Simulation', font=self.AppFont)],
             [sg.Button('Exit', font=self.AppFont)]
             ]
         
@@ -68,12 +79,15 @@ Visualisation types:
 
 Generate Statistics:
 Set the number of repetitions, the simulation the runs for that number of times without visualisation, and then writes the average spread in a popup window.
+
+Strategic Simulation:
+Runs the simulation with a predefined strategy.
 """
-        # self.start()
         
     def create_sim_layout(self):
         """
-        pysimplegui cannot reuse a layout, generating a new
+        generates a simulation screen layout.
+        the gui package cannot reuse a layout, generating a new
         layout with new element objects is the solution, rather
         than trying to create a template and starting to work on
         deep copying the very flexible nested arrays of elements.
@@ -90,7 +104,13 @@ Set the number of repetitions, the simulation the runs for that number of times 
         """
         function resizes the given frame to be bigger, saves it
         as an image and then shows it on the GUI for 0.05 of a second
-        """
+
+        Args:
+            window (sg.Window): a pysimplegui window
+            frame (ndarray): a simulation lattice
+            iteration (int): current iteration number
+            stats (float): percentage of population which has heard the rumour
+        """        
         
         resized_frame = np.ndarray(shape=self.shape)
         horizental_side = int(self.shape[0]/self.matrix_shape[0])
@@ -124,20 +144,24 @@ Set the number of repetitions, the simulation the runs for that number of times 
                 pass
 
 
-    def start_simulation(self, sim_values):
+    def start_simulation(self, sim_values, strategy):
         """
         creates the new simulation window, runs the simulation
         to get all itertion frames, and then show each one
         using draw_frame(), afterwhich it gives the user the option to
         close the window whenever they'd like
-        """
+
+        Args:
+            sim_values (nparray): array of the simulation parameters
+        """        
+
         window = sg.Window('Rumour Spreading Simulation',
                                     self.create_sim_layout(),
                                     finalize=True,
                                     resizable=True,
                                     element_justification="left")
         
-        simulation = Sim.Simulation(*sim_values)
+        simulation = Sim.Simulation(*sim_values, strategy=strategy)
         iterations = sim_values[-1]
         event = 'initial value'
 
@@ -215,6 +239,14 @@ Set the number of repetitions, the simulation the runs for that number of times 
 
         
     def process_values(self, values):
+        """_summary_
+
+        Args:
+            values (nparray): array of simulation parameters as entered by the user
+
+        Returns:
+            nparray: an array of rounded values, confirming to the parameters conditions
+        """        
         try:
             raw_sim_values = [float(values['p']), int(values['l']),
                         float(values['s1']), float(values['s2']),
@@ -265,12 +297,14 @@ Set the number of repetitions, the simulation the runs for that number of times 
                 break
 
             if event == 'Spread Cooldown':
+                # set visualisation type to cooldown, disable its button
                 self.visuals = 'cooldown'
                 self.window['Spread Cooldown'].update(disabled=True)
                 self.window['Rumour Heard'].update(disabled=False)
                 self.window['Times Rumour Heard'].update(disabled=False)
 
             if event == 'Rumour Heard':
+                # set visualisation type to heard rumour, disable its button
                 self.visuals = 'heard rumour'
                 self.window['Rumour Heard'].update(disabled=True)
                 self.window['Spread Cooldown'].update(disabled=False)
@@ -278,6 +312,7 @@ Set the number of repetitions, the simulation the runs for that number of times 
                 self.window['None'].update(disabled=False)
 
             if event == 'Times Rumour Heard':
+                # set visualisation type to got_rumour, disable its button
                 self.visuals = 'got_rumour'
                 self.window['Times Rumour Heard'].update(disabled=True)
                 self.window['Rumour Heard'].update(disabled=False)
@@ -285,6 +320,7 @@ Set the number of repetitions, the simulation the runs for that number of times 
                 self.window['None'].update(disabled=False)
 
             if event == 'None':
+                # set visualisation type to None, disable its button
                 self.visuals = 'None'
                 self.window['None'].update(disabled=True)
                 self.window['Times Rumour Heard'].update(disabled=False)
@@ -292,11 +328,13 @@ Set the number of repetitions, the simulation the runs for that number of times 
                 self.window['Spread Cooldown'].update(disabled=False)
                 
             if event == 'Generate Statistics':
+                # generate the average spread for reapets of the simulation
+                # given the current parameters
                 average_spread = 0
                 repeats = int(values['repeats'])
                 sim_values = self.process_values(values)
                 for i in range(repeats):
-                    simulation = Sim.Simulation(*sim_values)
+                    simulation = Sim.Simulation(*sim_values, self.strategy)
                     simulation.run(preprocess=True)
                     average_spread += simulation.get_stats()
 
@@ -304,16 +342,28 @@ Set the number of repetitions, the simulation the runs for that number of times 
                 sg.popup(f"Average Spread: {round(average_spread*100, 2)}%", font=self.AppFont)
 
             if event == 'Information':
+                # start a popup window with information about the program
                 sg.popup(self.infotext, font=self.AppFont)
 
             if event == 'Start Simulation':
                 # process user entered parameters
                 sim_values = self.process_values(values)
 
+                # invalid values entered, error is printed in the function
                 if sim_values == None:
                     continue
                 # sim_values = [0.7, 2, 15, 0.7, 0.15, 0.1, 0.05]
                 self.start_simulation(sim_values)
+            
+            if event == 'Strategic Simulation':
+                # process user entered parameters
+                sim_values = self.process_values(values)
+
+                # invalid values entered, error is printed in the function
+                if sim_values == None:
+                    continue
+
+                self.start_simulation(sim_values, self.strategy)
                 
                 
         self.window.close()
