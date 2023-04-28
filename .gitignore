@@ -1,7 +1,6 @@
 dist
 *.spec
-*.pdf
 build
 _pycache_
 *.pyc
-*.png
+

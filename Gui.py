@@ -76,7 +76,7 @@ Visualisation types:
 * Spread Cooldown - Color cells by how many iterations remain until it can spread the rumour again. A cell which spreads the rumour becomes bright and fades until it can spread it again.
 * Rumour Heard - Colors cells by whether or not they have heard the rumour.
 * Times Rumour Heard - Colors cells by how many times they have heard the rumour throughout the simulation.
-
+* None - the simulation will run in the background and only present the last frame when it finishes.
 Generate Statistics:
 Set the number of repetitions, the simulation the runs for that number of times without visualisation, and then writes the average spread in a popup window.
 

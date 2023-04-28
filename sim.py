@@ -32,6 +32,7 @@ class Simulation:
         self.l = l
         self.shape = shape
         self.iterations = iterations
+        self.features = np.dtype([('exists', 'bool'), ('sus_level', 'f8'), ('heard_rumour','i4'),('cooldown','i4'),('got_rumour', 'i4')])
         if strategy == None:
             self.create_cell_lattice()
         else:
@@ -94,7 +95,6 @@ class Simulation:
         creates a new lattice graph of people with random assignments according
         to the given distribution parameters
         """
-        self.features = np.dtype([('exists', 'bool'), ('sus_level', 'f8'), ('heard_rumour','i4'),('cooldown','i4'),('got_rumour', 'i4')])
         self.lattice = np.ndarray(shape=self.shape, dtype=self.features)
         
         # generate

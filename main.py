@@ -29,7 +29,7 @@ def draw_graph(stats_samples, results, labels, title):
 
     for i in range(stats_samples):
         colors.append('#%06X' % np.random.randint(0, 0xFFFFFF))
-    graph = plt.figure()
+        
     for i in range(len(results)):
         plt.plot(x, results[i], color=colors[i], label=labels[i])
     plt.xlabel("Iteration Number")
@@ -50,26 +50,99 @@ def strategic_sim(shape=(100,100)):
     lattice['exists'] = np.full(shape, True)
     lattice['sus_level'] = np.zeros(shape)
 
-    for i in range(0, 100, 6):
-        for j in range(0, 100, 6):
-            lattice[i:i+5, j:j+5]['sus_level'] = 1
+    for i in range(0, 100, 5):
+        for j in range(0, 100, 5):
+            lattice[i:i+3, j:j+3]['sus_level'] = 1
+            lattice[i+3, j:j+5]['sus_level'] = 1/3
+            lattice[i:i+5, j+3]['sus_level'] = 1/3
+            lattice[i+4, j:j+5]['sus_level'] = 1/3
+            lattice[i:i+5, j+4]['sus_level'] = 1/3
 
-    # Add columns of [0, 0, 1, 0, 0] between each box
-    for i in range(5, 100, 6):
-        lattice[:, i:i+5]['sus_level'] = np.array([1/3, 1/3, 2/3, 1/3, 1/3])
+    # for i in range(5, 100, 6):
+    #     lattice[:, i:i+5]['sus_level'] = np.array([2/3, 2/3, 2/3, 2/3, 2/3])
 
     lattice['heard_rumour'] = np.zeros(shape)
     lattice['cooldown'] = np.zeros(shape)
     lattice['got_rumour'] = np.zeros(shape)
 
     return lattice
-    
+
+
+
+def generate_dist_stats(distributions, p, l , iterations=100, repeats = 15, stats_samples = 20):
+    """generate graph of spread rate per iteration for all distributions given.
+    the sample rate is set by the stats_samples argument divided by the iterations argument.
+
+    Args:
+        distributions (array): array of distributions of susceptibilty levels.
+        p (float): portion of existing cells
+        l (int): number of iterations cooldown on spreading a rumour
+        iterations (int, optional): number of iterations. Defaults to 100.
+        repeats (int, optional): number of times the simulation is run per parameter value. Defaults to 15.
+        stats_samples (int, optional): how many samples should be taken during the simulation. Defaults to 20.
+    """
+    stats_sr = iterations//stats_samples
+    dist_results = np.zeros((len(distributions), stats_samples))
+    dist_labels = []
+    for dist in range(len(distributions)):
+        average_spread = np.zeros(stats_samples)
+        distributions[dist] = check_sum(*distributions[dist])
+        sim_values = [p, l, *distributions[dist], iterations]
+
+        for i in range(repeats):
+            sim = Sim.Simulation(*sim_values)
+            frames, stats = sim.run(preprocess=True, stats_sr=stats_sr)
+            for i in range(0, stats_samples):
+                average_spread[i] += stats[i]
+
+        average_spread = average_spread/repeats
+        dist_results[dist] = average_spread
+
+        dist_labels.append(f'distribution: {dist+1}; STD: {round(np.std(dist_results[dist]),3)}')
+        
+    draw_graph(stats_samples, dist_results, dist_labels, "Distributions Spread Rate")
+
+
+def generate_L_stats(upper_limit, p, dist, iterations=100, repeats = 15, stats_samples = 20):
+    """generate graph of spread rate per iteration for all L values between 2 and the upper limit.
+    the sample rate is set by the stats_samples argument divided by the iterations argument.
+
+    Args:
+        upper_limit (int): upper limit of L value
+        p (float): portion of existing cells
+        dist (_type_): _description_
+        iterations (int, optional): number of iterations. Defaults to 100.
+        repeats (int, optional): number of times the simulation is run per parameter value. Defaults to 15.
+        stats_samples (int, optional): how many samples should be taken during the simulation. Defaults to 20.
+    """
+    stats_sr = iterations//stats_samples
+    limit_results = np.zeros((upper_limit - 2, stats_samples))
+    limit_labels = []
+    for l in range(2,upper_limit):
+        average_spread = np.zeros(stats_samples)
+        sim_values = [p, l, *dist, iterations]
+
+        for i in range(repeats):
+            sim = Sim.Simulation(*sim_values)
+            frames, stats = sim.run(preprocess=True, stats_sr=stats_sr)
+            for i in range(0, stats_samples):
+                average_spread[i] += stats[i]
+
+        average_spread = average_spread/repeats
+        limit_results[l-2] = average_spread
+        limit_labels.append(f"L={l}")
+
+    draw_graph(stats_samples, limit_results, limit_labels, "L Spread Rates")
+
+     
+
 
      
 if __name__ == '__main__':
     gui = Gui.Gui(strategic_sim)
     gui.start()
     
+    # # some default parmeters for intial testing
     # # pop density parameter
     # p = 0.8
 
@@ -86,60 +159,33 @@ if __name__ == '__main__':
     # s4 = 0.05
     # raw_sim_values = [p, l, s1, s2, s3, s4, iterations]
     # sim_values = [round(i, 2) for i in raw_sim_values]
-   
 
-    # # sim = Simulation(0.7, 2, 15, 0.7, 0.15, 0.1, 0.05)
-    # repeats = 15
-    # stats_samples = 20
-    # stats_sr = iterations//stats_samples
-    # # distributions = [
-    # #     [0.7, 0.15, 0.1, 0.05], [0.6, 0.15, 0.1, 0.15],
-    # #     [0.6, 0.15, 0.15, 0.1], [0.5, 0.2, 0.15, 0.15],
-    # #     [0.5, 0.25, 0.15, 0.1], [0.4, 0.25, 0.2, 0.15],
-    # #     [0.4, 0.2, 0.2, 0.2], [0.4, 0.3, 0.2, 0.1],
-    # #     [0.3, 0.25, 0.2, 0.15], [0.3, 0.25, 0.25, 0.2]
-    # #     ]
-    
-    # # dist_results = np.zeros((len(distributions), stats_samples))
-    # # dist_labels = []
-    # # for dist in range(len(distributions)):
-    # #     average_spread = np.zeros(stats_samples)
-    # #     distributions[dist] = check_sum(*distributions[dist])
-    # #     sim_values = [p, l, *distributions[dist], iterations]
+    # # # a regular simulation, will not print anything
+    # # # sim = Sim.Simulation(*sim_values)
 
-    # #     for i in range(repeats):
-    # #         sim = Sim.Simulation(*sim_values)
-    # #         frames, stats = sim.run(preprocess=True, stats_sr=stats_sr)
-    # #         for i in range(0, stats_samples):
-    # #             average_spread[i] += stats[i]
+    # # create graphs for statistics on multiple runs per parameter value
+    # distributions = [
+    #     [0.7, 0.15, 0.1, 0.05], [0.6, 0.15, 0.1, 0.15],
+    #     [0.6, 0.15, 0.15, 0.1], [0.5, 0.2, 0.15, 0.15],
+    #     [0.5, 0.25, 0.15, 0.1], [0.4, 0.25, 0.2, 0.15],
+    #     [0.4, 0.2, 0.2, 0.2], [0.4, 0.3, 0.2, 0.1],
+    #     [0.3, 0.25, 0.2, 0.15], [0.3, 0.25, 0.25, 0.2]
+    #     ]
 
-    # #     average_spread = average_spread/repeats
-    # #     dist_results[dist] = average_spread
+    # # run one at a time
+    # generate_dist_stats(distributions, p, l,repeats=1)
+    # plt.savefig("distributions_fig.png")
 
-    # #     dist_labels.append(f'distribution: {dist+1}; STD: {round(np.std(dist_results[dist]),3)}')
-    # # print(dist_results)
-    
-    # upper_limit = 10
-    # limit_results = np.zeros((upper_limit - 2, stats_samples))
-    # limit_labels = []
-    # for l in range(2,upper_limit):
-    #     average_spread = np.zeros(stats_samples)
-    #     dist = [0.6, 0.15, 0.1, 0.15]
-    #     sim_values = [p, l, *dist, iterations]
+    # dist = [0.7, 0.15, 0.1, 0.05]
+    # generate_L_stats(3, p, dist, repeats=1)
+    # plt.savefig("L_fig.png")
 
-    #     for i in range(repeats):
-    #         sim = Sim.Simulation(*sim_values)
-    #         frames, stats = sim.run(preprocess=True, stats_sr=stats_sr)
-    #         for i in range(0, stats_samples):
-    #             average_spread[i] += stats[i]
+    # # run strategic sim multiple times for statistics
+    # average_spread = 0
+    # for i in range(20):
+    #     sim = Sim.Simulation(*sim_values, strategy=strategic_sim)
+    #     sim.run(preprocess=True)
+    #     average_spread += sim.get_stats()
+    # average_spread = average_spread/20*100
+    # print(average_spread)
 
-    #     average_spread = average_spread/repeats
-    #     limit_results[l-2] = average_spread
-    #     limit_labels.append(f"L={l}")
-    # print(limit_results)
-
-    # fig, ax = plt.subplots(1,2)
-    # # draw_graph(stats_samples, dist_results, dist_labels, "Distributions Spread Rate")
-    # # plt.savefig("Distributions.png")
-    # draw_graph(stats_samples, limit_results, limit_labels, "L Spread Rates")
-    # plt.savefig("L.png")
